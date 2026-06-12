@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import {
   LayoutDashboard,
   ListTodo,
@@ -18,11 +20,14 @@ const nav = [
   { href: "/settings", label: "הגדרות", icon: Settings },
 ];
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-60 shrink-0 border-l bg-sidebar text-sidebar-foreground flex flex-col">
