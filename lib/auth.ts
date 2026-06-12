@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Resend from "next-auth/providers/resend";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   authUsers,
   authAccounts,
@@ -10,7 +10,9 @@ import {
   authVerificationTokens,
 } from "@/lib/db/schema";
 
-const providers = [];
+import type { Provider } from "next-auth/providers";
+
+const providers: Provider[] = [];
 
 // Magic link במייל (פרודקשן) — דורש AUTH_RESEND_KEY
 if (process.env.AUTH_RESEND_KEY) {
@@ -39,8 +41,9 @@ if (process.env.AUTH_DEV_PASSWORD) {
   );
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db, {
+// קונפיגורציה עצלה — נבנית רק בזמן request, כדי שה-build יעבור גם בלי DATABASE_URL
+export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
+  adapter: DrizzleAdapter(getDb(), {
     usersTable: authUsers,
     accountsTable: authAccounts,
     sessionsTable: authSessions,
@@ -55,4 +58,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     authorized: ({ auth }) => !!auth?.user,
   },
-});
+}));
